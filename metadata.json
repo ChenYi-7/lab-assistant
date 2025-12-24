@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Lab Test Tracker Pro",
+  "description": "A professional mobile-friendly lab testing data recorder with AI-assisted image analysis and Excel export capabilities.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
