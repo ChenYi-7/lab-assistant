@@ -27,11 +27,9 @@ const App: React.FC = () => {
     const existingIndex = records.findIndex(r => r.id === record.id);
     
     if (existingIndex > -1) {
-      // Update existing
       updated = [...records];
       updated[existingIndex] = record;
     } else {
-      // Create new
       updated = [record, ...records];
     }
     
@@ -58,9 +56,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Header */}
-      <header className="bg-indigo-600 text-white p-4 sticky top-0 z-50 shadow-md">
+    <div className="min-h-screen bg-slate-50 pb-24">
+      {/* Header - 适配 iOS 安全区域 */}
+      <header className="bg-indigo-600 text-white px-4 pb-4 pt-10 sticky top-0 z-50 shadow-md">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-2 rounded-lg">
@@ -76,13 +74,13 @@ const App: React.FC = () => {
               onClick={handleNewTest}
               className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${view === 'FORM' && !editingRecord ? 'bg-white text-indigo-600 shadow-sm' : 'text-white/80'}`}
             >
-              New Test
+              录入
             </button>
             <button 
               onClick={() => setView('LIST')}
               className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${view === 'LIST' ? 'bg-white text-indigo-600 shadow-sm' : 'text-white/80'}`}
             >
-              Database
+              库
             </button>
           </div>
         </div>
@@ -97,11 +95,12 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Mobile Floating Action Button (Only in List view) */}
+      {/* Mobile Floating Action Button */}
       {view === 'LIST' && (
         <button
           onClick={handleNewTest}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-indigo-700 md:hidden transition-transform active:scale-90"
+          className="fixed bottom-8 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center text-xl hover:bg-indigo-700 md:hidden transition-transform active:scale-90 z-40"
+          style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
         >
           <i className="fas fa-plus"></i>
         </button>

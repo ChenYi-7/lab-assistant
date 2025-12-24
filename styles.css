@@ -1,0 +1,38 @@
+
+/* 处理 iOS 刘海屏和底栏安全区域 */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+}
+
+body {
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+  -webkit-tap-highlight-color: transparent; /* 移除移动端点击蓝框 */
+  overscroll-behavior-y: none; /* 禁用下拉刷新（按需启用） */
+}
+
+/* 优化移动端按钮点击反馈 */
+button:active {
+  transform: scale(0.96);
+  transition: transform 0.1s ease;
+}
+
+/* 隐藏滚动条但保留滚动功能 */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 固定的底部导航/按钮的安全区域适配 */
+.sticky-bottom-safe {
+  bottom: calc(1.5rem + var(--sab));
+}
+
+/* 适配 iOS 的 Header */
+header {
+  padding-top: calc(1rem + var(--sat)) !important;
+}
