@@ -1,65 +1,42 @@
 
-/* 处理 iOS 刘海屏和底栏安全区域 */
 :root {
   --sat: env(safe-area-inset-top);
   --sab: env(safe-area-inset-bottom);
-}
-
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  /* 解决移动端滚动回弹效果 */
-  -webkit-overflow-scrolling: touch;
 }
 
 body {
   padding-top: var(--sat);
   padding-bottom: var(--sab);
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none; /* 禁用下拉刷新防止录入时误操作 */
   background-color: #f8fafc;
-  /* 禁止用户缩放以保证网页像App一样稳定（可选，但通常有助于录入体验） */
-  touch-action: manipulation;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* 移除 iOS 默认输入框样式并防止缩放 */
-input, textarea, select {
-  font-size: 16px !important; /* 核心：防止 iOS 聚焦时网页自动放大 */
-  -webkit-appearance: none;
-  border-radius: 0.75rem;
+input, textarea {
+  font-size: 16px !important; /* 核心：16px 或以上可防止 iOS 聚焦缩放 */
 }
 
-/* 优化移动端点击反馈 */
-button:active, .clickable:active {
-  transform: scale(0.96);
-  opacity: 0.8;
-  transition: all 0.1s ease;
-}
-
-/* 滚动条美化 */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 10px;
-}
-
-/* 针对手机浏览器的底部安全区域适配 */
 .sticky-bottom-safe {
-  padding-bottom: calc(1rem + var(--sab));
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
 }
 
-header {
-  /* 确保 Header 不会被刘海遮挡 */
-  padding-top: calc(0.5rem + var(--sat)) !important;
+/* 隐藏手机端点击灰色背景 */
+* {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
-/* 移动端卡片阴影微调，使其更轻量 */
-@media (max-width: 640px) {
-  .card-shadow {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  }
+/* 按钮点击动画 */
+button:active {
+  transform: scale(0.97);
+  transition: transform 0.1s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }

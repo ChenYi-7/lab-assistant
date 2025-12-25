@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LabTestRecord, TrialData } from '../types.ts';
 import ImagePicker from './ImagePicker.tsx';
+import { generateSafeId } from '../App.tsx';
 
 interface TestFormProps {
   onSave: (record: LabTestRecord) => void;
@@ -41,7 +42,8 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
     }
     
     const record: LabTestRecord = {
-      id: initialData ? initialData.id : crypto.randomUUID(),
+      // 关键修复：使用安全的 ID 生成器，不要在非 HTTPS 下直接用 crypto.randomUUID
+      id: initialData ? initialData.id : generateSafeId(),
       testDate,
       sampleName,
       temperature,
@@ -60,7 +62,6 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
         <h3 className="font-bold text-slate-800 text-sm tracking-wide">测试试验 {num} (Trial {num})</h3>
       </div>
       
-      {/* Foam Section */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-indigo-600 mb-1">
           <i className="fas fa-soap text-xs"></i>
@@ -93,7 +94,6 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
         <ImagePicker value={data.foamPic} type="foam" label="泡沫照片 (Foam Pic)" onChange={val => setData({...data, foamPic: val})} />
       </div>
 
-      {/* Coating Section */}
       <div className="space-y-3 pt-2 border-t border-slate-50">
         <div className="flex items-center gap-2 text-indigo-600 mb-1">
           <i className="fas fa-layer-group text-xs"></i>
@@ -108,7 +108,6 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
         <ImagePicker value={data.coatingPic} type="coating" label="挂壁照片 (Coating Pic)" onChange={val => setData({...data, coatingPic: val})} />
       </div>
 
-      {/* Floating Lumps Section */}
       <div className="space-y-3 pt-2 border-t border-slate-50">
         <div className="flex items-center gap-2 text-indigo-600 mb-1">
           <i className="fas fa-water text-xs"></i>
@@ -124,7 +123,6 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
         <ImagePicker value={data.floatingLumpsPic} type="lumps" label="浮渣照片 (Floating Lumps Pic)" onChange={val => setData({...data, floatingLumpsPic: val})} />
       </div>
 
-      {/* Lumping Section */}
       <div className="space-y-3 pt-2 border-t border-slate-50">
         <div className="flex items-center gap-2 text-indigo-600 mb-1">
           <i className="fas fa-cubes text-xs"></i>
@@ -143,7 +141,7 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 pb-24">
+    <form onSubmit={handleSubmit} className="space-y-6 pb-28">
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
         <h2 className="text-base font-bold text-slate-800 mb-5 flex items-center gap-2">
           <i className="fas fa-clipboard-check text-indigo-500"></i> 测试基础信息
@@ -169,7 +167,8 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
         <TrialSection num={2} data={trial2} setData={setTrial2} />
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-xl border-t border-slate-200 z-50 sticky-bottom-safe">
+      {/* 优化：使用 sticky 替代 fixed 以防软键盘弹出时布局跳动 */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-slate-200 z-50 safe-area-bottom">
         <div className="max-w-4xl mx-auto">
           <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-indigo-100 active:scale-[0.97] transition-all flex items-center justify-center gap-3">
             <i className="fas fa-save"></i> {initialData ? '更新实验记录' : '保存实验数据'}
