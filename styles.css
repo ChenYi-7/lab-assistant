@@ -5,34 +5,47 @@
   --sab: env(safe-area-inset-bottom);
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 body {
   padding-top: var(--sat);
   padding-bottom: var(--sab);
-  -webkit-tap-highlight-color: transparent; /* 移除移动端点击蓝框 */
-  overscroll-behavior-y: none; /* 禁用下拉刷新（按需启用） */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain; /* 防止下拉刷新误触 */
+  background-color: #f8fafc;
 }
 
-/* 优化移动端按钮点击反馈 */
+/* 移除 iOS 默认输入框样式 */
+input, textarea, select {
+  font-size: 16px !important; /* 防止 iOS 聚焦时自动缩放 */
+  -webkit-appearance: none;
+  border-radius: 0.75rem;
+}
+
+/* 优化点击效果 */
 button:active {
-  transform: scale(0.96);
-  transition: transform 0.1s ease;
+  transform: scale(0.97);
+  opacity: 0.9;
 }
 
-/* 隐藏滚动条但保留滚动功能 */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 6px;
 }
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
 }
 
-/* 固定的底部导航/按钮的安全区域适配 */
 .sticky-bottom-safe {
-  bottom: calc(1.5rem + var(--sab));
+  bottom: calc(1rem + var(--sab));
 }
 
-/* 适配 iOS 的 Header */
 header {
-  padding-top: calc(1rem + var(--sat)) !important;
+  padding-top: calc(0.75rem + var(--sat)) !important;
 }
