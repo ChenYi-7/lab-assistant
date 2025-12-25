@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { LabTestRecord, TrialData } from '../types';
-import ImagePicker from './ImagePicker';
+import { LabTestRecord, TrialData } from '../types.ts';
+import ImagePicker from './ImagePicker.tsx';
 
 interface TestFormProps {
   onSave: (record: LabTestRecord) => void;
@@ -24,7 +23,6 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
   const [trial1, setTrial1] = useState<TrialData>(emptyTrial());
   const [trial2, setTrial2] = useState<TrialData>(emptyTrial());
 
-  // Populate form if initialData is provided (Edit Mode)
   useEffect(() => {
     if (initialData) {
       setTestDate(initialData.testDate);
@@ -38,7 +36,7 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sampleName) {
-      alert("Please enter sample name");
+      alert("请输入样品名称");
       return;
     }
     
@@ -53,157 +51,115 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
     };
     
     onSave(record);
-    // Reset defaults after save
-    setSampleName('');
-    setTemperature('');
-    setTrial1(emptyTrial());
-    setTrial2(emptyTrial());
   };
 
-  const TrialSection = ({ 
-    num, 
-    data, 
-    setData 
-  }: { 
-    num: number, 
-    data: TrialData, 
-    setData: React.Dispatch<React.SetStateAction<TrialData>> 
-  }) => (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-        <span className="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">
-          {num}
-        </span>
-        <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm">Trial {num} Data</h3>
+  const TrialSection = ({ num, data, setData }: { num: number, data: TrialData, setData: React.Dispatch<React.SetStateAction<TrialData>> }) => (
+    <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-6">
+      <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+        <span className="bg-indigo-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">{num}</span>
+        <h3 className="font-bold text-slate-800 text-sm tracking-wide">测试试验 {num} (Trial {num})</h3>
+      </div>
+      
+      {/* Foam Section */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-indigo-600 mb-1">
+          <i className="fas fa-soap text-xs"></i>
+          <span className="text-[11px] font-bold uppercase tracking-wider">泡沫测试 (Foam)</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase ml-1">Score (0-10)</label>
+            <input 
+              type="number" 
+              inputMode="decimal"
+              value={data.foamScore || ''} 
+              onChange={e => setData({...data, foamScore: Number(e.target.value)})} 
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
+              placeholder="分数"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase ml-1">Volume (ml)</label>
+            <input 
+              type="number" 
+              inputMode="numeric"
+              value={data.foamMl || ''} 
+              onChange={e => setData({...data, foamMl: Number(e.target.value)})} 
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
+              placeholder="ml"
+            />
+          </div>
+        </div>
+        <ImagePicker value={data.foamPic} type="foam" label="泡沫照片 (Foam Pic)" onChange={val => setData({...data, foamPic: val})} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Foam Score</label>
-          <input 
-            type="number" 
-            value={data.foamScore} 
-            onChange={e => setData({...data, foamScore: Number(e.target.value)})}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-            placeholder="0-10"
-          />
+      {/* Coating Section */}
+      <div className="space-y-3 pt-2 border-t border-slate-50">
+        <div className="flex items-center gap-2 text-indigo-600 mb-1">
+          <i className="fas fa-layer-group text-xs"></i>
+          <span className="text-[11px] font-bold uppercase tracking-wider">挂壁情况 (Coating)</span>
         </div>
-        <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Foam (ml)</label>
-          <input 
-            type="number" 
-            value={data.foamMl} 
-            onChange={e => setData({...data, foamMl: Number(e.target.value)})}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-            placeholder="Volume"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ImagePicker 
-          label="Foam Image" 
-          value={data.foamPic} 
-          type="foam"
-          onChange={val => setData({...data, foamPic: val})} 
+        <textarea 
+          value={data.coating} 
+          onChange={e => setData({...data, coating: e.target.value})} 
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none min-h-[60px]" 
+          placeholder="输入挂壁描述..."
         />
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Coating Status</label>
-            <input 
-              type="text" 
-              value={data.coating} 
-              onChange={e => setData({...data, coating: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="0/1/2"
-            />
-          </div>
-          <ImagePicker 
-            label="Coating Image" 
-            value={data.coatingPic} 
-            type="coating"
-            onChange={val => setData({...data, coatingPic: val})} 
-          />
-        </div>
+        <ImagePicker value={data.coatingPic} type="coating" label="挂壁照片 (Coating Pic)" onChange={val => setData({...data, coatingPic: val})} />
+      </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Floating Lumps</label>
-            <input 
-              type="text" 
-              value={data.floatingLumps} 
-              onChange={e => setData({...data, floatingLumps: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="0/1/2"
-            />
-          </div>
-          <ImagePicker 
-            label="Lumps Image" 
-            value={data.floatingLumpsPic} 
-            type="lumps"
-            onChange={val => setData({...data, floatingLumpsPic: val})} 
-          />
+      {/* Floating Lumps Section */}
+      <div className="space-y-3 pt-2 border-t border-slate-50">
+        <div className="flex items-center gap-2 text-indigo-600 mb-1">
+          <i className="fas fa-water text-xs"></i>
+          <span className="text-[11px] font-bold uppercase tracking-wider">浮渣情况 (Floating Lumps)</span>
         </div>
+        <input 
+          type="text" 
+          value={data.floatingLumps} 
+          onChange={e => setData({...data, floatingLumps: e.target.value})} 
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
+          placeholder="描述浮渣..."
+        />
+        <ImagePicker value={data.floatingLumpsPic} type="lumps" label="浮渣照片 (Floating Lumps Pic)" onChange={val => setData({...data, floatingLumpsPic: val})} />
+      </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Lumping</label>
-            <input 
-              type="text" 
-              value={data.lumping} 
-              onChange={e => setData({...data, lumping: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="0/1/2"
-            />
-          </div>
-          <ImagePicker 
-            label="Lumping Image" 
-            value={data.lumpingPic} 
-            type="lumps"
-            onChange={val => setData({...data, lumpingPic: val})} 
-          />
+      {/* Lumping Section */}
+      <div className="space-y-3 pt-2 border-t border-slate-50">
+        <div className="flex items-center gap-2 text-indigo-600 mb-1">
+          <i className="fas fa-cubes text-xs"></i>
+          <span className="text-[11px] font-bold uppercase tracking-wider">结块情况 (Lumping)</span>
         </div>
+        <input 
+          type="text" 
+          value={data.lumping} 
+          onChange={e => setData({...data, lumping: e.target.value})} 
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
+          placeholder="描述结块..."
+        />
+        <ImagePicker value={data.lumpingPic} type="lumps" label="结块照片 (Lumping Pic)" onChange={val => setData({...data, lumpingPic: val})} />
       </div>
     </div>
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-          <i className={`fas ${initialData ? 'fa-edit' : 'fa-info-circle'} text-indigo-500`}></i> 
-          {initialData ? 'Edit Test Record' : 'General Information'}
+    <form onSubmit={handleSubmit} className="space-y-6 pb-24">
+      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+        <h2 className="text-base font-bold text-slate-800 mb-5 flex items-center gap-2">
+          <i className="fas fa-clipboard-check text-indigo-500"></i> 测试基础信息
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Test Date</label>
-            <input 
-              type="date" 
-              value={testDate} 
-              onChange={e => setTestDate(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-            />
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase ml-1">测试日期 (Date)</label>
+            <input type="date" value={testDate} onChange={e => setTestDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium" />
           </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Sample Name</label>
-            <input 
-              type="text" 
-              value={sampleName} 
-              onChange={e => setSampleName(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-              placeholder="Batch-2024-X"
-            />
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase ml-1">样品名称 (Sample Name)</label>
+            <input type="text" value={sampleName} onChange={e => setSampleName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium" placeholder="输入样品名称或批次号" />
           </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Temp (°C)</label>
-            <input 
-              type="text" 
-              value={temperature} 
-              onChange={e => setTemperature(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-              placeholder="25°C"
-            />
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase ml-1">环境温度 (Temp)</label>
+            <input type="text" value={temperature} onChange={e => setTemperature(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium" placeholder="如: 25°C" />
           </div>
         </div>
       </div>
@@ -213,28 +169,12 @@ const TestForm: React.FC<TestFormProps> = ({ onSave, initialData }) => {
         <TrialSection num={2} data={trial2} setData={setTrial2} />
       </div>
 
-      <div className="flex gap-4 sticky bottom-6 z-40 bg-white/80 backdrop-blur px-2 py-3 rounded-2xl border border-slate-200 shadow-lg">
-        <button 
-          type="submit"
-          className="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-        >
-          <i className="fas fa-save"></i>
-          {initialData ? 'UPDATE RECORD' : 'SAVE RECORD'}
-        </button>
-        <button 
-          type="button"
-          onClick={() => {
-            if(confirm("Discard all changes?")) {
-              setSampleName('');
-              setTemperature('');
-              setTrial1(emptyTrial());
-              setTrial2(emptyTrial());
-            }
-          }}
-          className="px-6 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-all"
-        >
-          RESET
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-xl border-t border-slate-200 z-50 sticky-bottom-safe">
+        <div className="max-w-4xl mx-auto">
+          <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-indigo-100 active:scale-[0.97] transition-all flex items-center justify-center gap-3">
+            <i className="fas fa-save"></i> {initialData ? '更新实验记录' : '保存实验数据'}
+          </button>
+        </div>
       </div>
     </form>
   );

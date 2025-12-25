@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './App.tsx';
 
 const renderApp = () => {
   const rootElement = document.getElementById('root');
@@ -18,7 +18,6 @@ const renderApp = () => {
   );
 };
 
-// 确保在 DOM 加载完成后运行
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', renderApp);
 } else {

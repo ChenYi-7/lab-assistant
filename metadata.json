@@ -1,6 +1,6 @@
 {
-  "name": "Copy of Lab Test Tracker Pro",
-  "description": "A professional mobile-friendly lab testing data recorder with AI-assisted image analysis and Excel export capabilities.",
+  "name": "Lab Test Tracker Pro",
+  "description": "专业的实验室测试数据记录工具，支持拍照上传与手动数据录入，支持导出 Excel。",
   "requestFramePermissions": [
     "camera"
   ]

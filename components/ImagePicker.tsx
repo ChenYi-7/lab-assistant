@@ -1,6 +1,5 @@
 
-import React, { useRef, useState } from 'react';
-import { analyzeLabImage } from '../services/geminiService';
+import React, { useRef } from 'react';
 
 interface ImagePickerProps {
   label: string;
@@ -9,56 +8,81 @@ interface ImagePickerProps {
   type: 'foam' | 'coating' | 'lumps';
 }
 
-const ImagePicker: React.FC<ImagePickerProps> = ({ label, value, onChange, type }) => {
+const ImagePicker: React.FC<ImagePickerProps> = ({ label, value, onChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (base64Str: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // 使用 jpeg 格式并设置 0.7 的质量，能大幅减小体积
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64String = reader.result as string;
-        onChange(base64String);
+        // 压缩后再保存
+        const compressed = await compressImage(base64String);
+        onChange(compressed);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const runAiAnalysis = async () => {
-    if (!value) return;
-    setAnalyzing(true);
-    const feedback = await analyzeLabImage(value, type);
-    setAiFeedback(feedback || "Analysis failed");
-    setAnalyzing(false);
-  };
-
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      <div className="flex flex-col gap-3">
+    <div className="w-full">
+      {label && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase ml-1">{label}</label>}
+      <div className="relative">
         {value ? (
-          <div className="relative group">
+          <div className="relative rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 shadow-inner">
             <img 
               src={value} 
               alt="Preview" 
-              className="w-full h-48 object-cover rounded-xl border border-gray-200 shadow-sm"
+              className="w-full h-full object-cover"
             />
-            <div className="absolute top-2 right-2 flex gap-2">
+            <div className="absolute inset-0 bg-black/10 flex items-end justify-end p-2 gap-2">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-white/90 p-2 rounded-full shadow hover:bg-white text-blue-600 transition-all"
+                className="w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-indigo-600 active:scale-90 transition-transform"
               >
-                <i className="fas fa-camera"></i>
+                <i className="fas fa-redo text-sm"></i>
               </button>
               <button
                 type="button"
                 onClick={() => onChange('')}
-                className="bg-white/90 p-2 rounded-full shadow hover:bg-white text-red-600 transition-all"
+                className="w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-red-500 active:scale-90 transition-transform"
               >
-                <i className="fas fa-trash"></i>
+                <i className="fas fa-trash-alt text-sm"></i>
               </button>
             </div>
           </div>
@@ -66,35 +90,12 @@ const ImagePicker: React.FC<ImagePickerProps> = ({ label, value, onChange, type 
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full h-32 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-all bg-white"
+            className="w-full py-6 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all bg-slate-50/50 active:bg-slate-100"
           >
-            <i className="fas fa-plus-circle text-2xl mb-2"></i>
-            <span className="text-xs">Add Photo</span>
+            <i className="fas fa-camera text-2xl mb-2 opacity-50"></i>
+            <span className="text-[11px] font-bold tracking-wide uppercase">点击拍摄照片</span>
+            <span className="text-[9px] opacity-60 mt-1">支持：Foam / Coating / Lumps</span>
           </button>
-        )}
-
-        {value && !aiFeedback && (
-          <button
-            type="button"
-            onClick={runAiAnalysis}
-            disabled={analyzing}
-            className="text-xs bg-indigo-50 text-indigo-700 py-1.5 px-3 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-100 disabled:opacity-50"
-          >
-            {analyzing ? (
-              <><i className="fas fa-spinner animate-spin"></i> Analyzing with AI...</>
-            ) : (
-              <><i className="fas fa-robot"></i> Suggest Data with Gemini AI</>
-            )}
-          </button>
-        )}
-
-        {aiFeedback && (
-          <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-800 leading-relaxed italic">
-            <div className="font-bold flex items-center gap-1 mb-1">
-              <i className="fas fa-sparkles"></i> AI Analysis:
-            </div>
-            {aiFeedback}
-          </div>
         )}
 
         <input

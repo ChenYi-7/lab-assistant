@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { LabTestRecord } from '../types';
-import { exportToExcel } from '../utils/exportUtils';
+import { LabTestRecord } from '../types.ts';
+import { exportToExcel } from '../utils/exportUtils.ts';
 
 interface DataListProps {
   records: LabTestRecord[];
@@ -10,239 +9,107 @@ interface DataListProps {
 }
 
 const DataList: React.FC<DataListProps> = ({ records, onDelete, onEdit }) => {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
 
   const calculateAvg = (v1: any, v2: any) => {
     const n1 = parseFloat(v1);
     const n2 = parseFloat(v2);
-    if (!isNaN(n1) && !isNaN(n2)) {
-      const avg = (n1 + n2) / 2;
-      return Number.isInteger(avg) ? avg.toString() : avg.toFixed(2);
-    }
+    if (!isNaN(n1) && !isNaN(n2)) return ((n1 + n2) / 2).toFixed(2);
     return '-';
-  };
-
-  const handleExport = async () => {
-    const selectedRecords = records.filter(r => selectedIds.includes(r.id));
-    if (selectedRecords.length === 0) {
-      alert("请先选择至少一条记录。");
-      return;
-    }
-    setIsExporting(true);
-    try {
-      await exportToExcel(selectedRecords);
-    } catch (error) {
-      console.error(error);
-      alert("导出失败，请重试。");
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleDeleteBatch = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (selectedIds.length === 0) return;
-    
-    if (confirm(`确定要删除选中的 ${selectedIds.length} 条记录吗？`)) {
-      onDelete(selectedIds);
-      setSelectedIds([]); 
-    }
-  };
-
-  const handleDeleteSingle = (id: string, name: string) => {
-    if (confirm(`确定要删除记录 "${name}" 吗？`)) {
-      onDelete([id]);
-      if (selectedIds.includes(id)) {
-        setSelectedIds(prev => prev.filter(i => i !== id));
-      }
-    }
   };
 
   if (records.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-3xl border border-slate-200 border-dashed">
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-3xl border border-slate-200 border-dashed m-4">
         <i className="fas fa-database text-4xl mb-4 opacity-20"></i>
-        <p className="font-medium">暂无记录</p>
-        <p className="text-xs mt-1">请点击“New Test”添加新记录。</p>
+        <p className="font-medium">暂无实验记录</p>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Selection Control Bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-[72px] z-30">
-        <div className="flex items-center gap-3">
-          <input 
-            type="checkbox" 
-            checked={selectedIds.length === records.length && records.length > 0}
-            onChange={(e) => {
-              e.stopPropagation();
-              setSelectedIds(selectedIds.length === records.length ? [] : records.map(r => r.id));
-            }}
-            className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-          />
-          <span className="text-sm font-bold text-slate-600">
-            已选择 {selectedIds.length} 项
-          </span>
-        </div>
-        <div className="flex gap-2">
-          {selectedIds.length > 0 && (
-            <>
-              <button 
-                onClick={handleExport}
-                disabled={isExporting}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-50 transition-all"
-              >
-                {isExporting ? (
-                  <><i className="fas fa-spinner animate-spin"></i> 正在导出...</>
-                ) : (
-                  <><i className="fas fa-file-excel"></i> 导出 Excel</>
-                )}
-              </button>
-              <button 
-                onClick={handleDeleteBatch}
-                className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-100 flex items-center gap-2 transition-all shadow-sm"
-              >
-                <i className="fas fa-trash"></i> 批量删除
-              </button>
-            </>
-          )}
-        </div>
+  const DetailRow = ({ label, value, pic }: { label: string, value: string | number, pic?: string }) => (
+    <div className="space-y-2 py-2 border-b border-slate-100 last:border-0">
+      <div className="flex justify-between items-start">
+        <span className="text-[10px] font-bold text-slate-400 uppercase">{label}</span>
+        <span className="text-xs font-medium text-slate-700">{value || '无描述'}</span>
       </div>
+      {pic && (
+        <div className="rounded-xl overflow-hidden border border-slate-200 aspect-video w-full bg-slate-100">
+          <img src={pic} alt={label} className="w-full h-full object-cover" />
+        </div>
+      )}
+    </div>
+  );
 
-      <div className="grid gap-4">
-        {records.map(record => (
-          <div 
-            key={record.id} 
-            className={`bg-white rounded-2xl border transition-all duration-200 ${expandedId === record.id ? 'border-indigo-400 ring-1 ring-indigo-400' : 'border-slate-200 hover:border-slate-300'}`}
-          >
-            <div className="p-4 flex items-center gap-4 cursor-pointer" onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}>
-              <input 
-                type="checkbox" 
-                checked={selectedIds.includes(record.id)}
-                onClick={(e) => e.stopPropagation()} 
-                onChange={(e) => {
-                  e.stopPropagation();
-                  toggleSelect(record.id);
-                }}
-                className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-bold text-slate-800">{record.sampleName}</h4>
-                  <div className="flex gap-2">
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{record.testDate}</span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-slate-500">
-                  <span>温度: <strong className="text-slate-700">{record.temperature}</strong></span>
-                  <span>平均 Foam: <strong className="text-indigo-600">{calculateAvg(record.trial1.foamScore, record.trial2.foamScore)} 分</strong></span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                 <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEdit(record);
-                    }}
-                    className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"
-                    title="编辑"
-                 >
-                    <i className="fas fa-edit"></i>
-                 </button>
-                 <i className={`fas fa-chevron-${expandedId === record.id ? 'up' : 'down'} text-slate-300`}></i>
+  const TrialDetail = ({ title, data }: { title: string, data: any }) => (
+    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+      <h5 className="text-[11px] text-indigo-600 font-bold uppercase tracking-wider border-b border-indigo-50 pb-2 mb-2">{title}</h5>
+      <DetailRow label="Foam Score" value={data.foamScore} pic={data.foamPic} />
+      <DetailRow label="Foam ML" value={data.foamMl} />
+      <DetailRow label="Coating" value={data.coating} pic={data.coatingPic} />
+      <DetailRow label="Floating Lumps" value={data.floatingLumps} pic={data.floatingLumpsPic} />
+      <DetailRow label="Lumping" value={data.lumping} pic={data.lumpingPic} />
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 px-2">
+      <div className="flex justify-between items-center px-2 pt-2">
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">历史实验库 ({records.length})</h3>
+        <button 
+          onClick={() => exportToExcel(records)}
+          className="text-xs font-bold text-indigo-600 flex items-center gap-1.5 bg-indigo-50 px-4 py-2 rounded-full active:scale-95 transition-transform"
+        >
+          <i className="fas fa-file-export text-[10px]"></i> 导出表格
+        </button>
+      </div>
+      
+      {records.map(record => (
+        <div key={record.id} className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm transition-all">
+          <div className="p-4 flex items-center gap-4 cursor-pointer" onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}>
+            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-indigo-500 border border-slate-100">
+              <i className="fas fa-flask text-lg"></i>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-slate-800 truncate">{record.sampleName}</h4>
+              <p className="text-[10px] text-slate-400 font-bold uppercase">{record.testDate} · {record.temperature || 'N/A'}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={(e) => { e.stopPropagation(); onEdit(record); }} className="w-10 h-10 flex items-center justify-center text-indigo-600 bg-indigo-50 rounded-xl active:scale-90 transition-transform"><i className="fas fa-pen text-xs"></i></button>
+              <div className={`w-8 h-8 flex items-center justify-center text-slate-300 transition-transform ${expandedId === record.id ? 'rotate-180' : ''}`}>
+                <i className="fas fa-chevron-down text-xs"></i>
               </div>
             </div>
-
-            {expandedId === record.id && (
-              <div className="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl animate-in fade-in duration-300">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Trial 1 Summary */}
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <h5 className="font-bold text-xs text-indigo-600 uppercase mb-3 border-b pb-1">测试 1</h5>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between"><span>Foam:</span> <strong>{record.trial1.foamScore} 分 / {record.trial1.foamMl}ml</strong></div>
-                      <div className="flex justify-between"><span>Coating:</span> <strong>{record.trial1.coating || '-'}</strong></div>
-                      <div className="flex justify-between"><span>Lumps:</span> <strong>{record.trial1.floatingLumps || '-'}</strong></div>
-                      <div className="flex justify-between"><span>Lumping:</span> <strong>{record.trial1.lumping || '-'}</strong></div>
-                    </div>
-                  </div>
-
-                  {/* Trial 2 Summary */}
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <h5 className="font-bold text-xs text-indigo-600 uppercase mb-3 border-b pb-1">测试 2</h5>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between"><span>Foam:</span> <strong>{record.trial2.foamScore} 分 / {record.trial2.foamMl}ml</strong></div>
-                      <div className="flex justify-between"><span>Coating:</span> <strong>{record.trial2.coating || '-'}</strong></div>
-                      <div className="flex justify-between"><span>Lumps:</span> <strong>{record.trial2.floatingLumps || '-'}</strong></div>
-                      <div className="flex justify-between"><span>Lumping:</span> <strong>{record.trial2.lumping || '-'}</strong></div>
-                    </div>
-                  </div>
-
-                  {/* Averages Summary */}
-                  <div className="bg-indigo-50/50 p-4 rounded-xl shadow-sm border border-indigo-100">
-                    <h5 className="font-bold text-xs text-indigo-700 uppercase mb-3 border-b border-indigo-200 pb-1 flex items-center gap-2">
-                      <i className="fas fa-calculator text-[10px]"></i> 综合平均值
-                    </h5>
-                    <div className="space-y-2 text-sm text-indigo-900">
-                      <div className="flex justify-between"><span>Foam Score:</span> <strong>{calculateAvg(record.trial1.foamScore, record.trial2.foamScore)}</strong></div>
-                      <div className="flex justify-between"><span>Foam (ml):</span> <strong>{calculateAvg(record.trial1.foamMl, record.trial2.foamMl)}</strong></div>
-                      <div className="flex justify-between"><span>Coating:</span> <strong>{calculateAvg(record.trial1.coating, record.trial2.coating)}</strong></div>
-                      <div className="flex justify-between"><span>Floating Lumps:</span> <strong>{calculateAvg(record.trial1.floatingLumps, record.trial2.floatingLumps)}</strong></div>
-                      <div className="flex justify-between"><span>Lumping:</span> <strong>{calculateAvg(record.trial1.lumping, record.trial2.lumping)}</strong></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 space-y-4">
-                   <h6 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">试验照片回顾</h6>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap gap-2">
-                         <span className="w-full text-[9px] text-slate-400 mb-1">测试 1 照片:</span>
-                         {record.trial1.foamPic && <img src={record.trial1.foamPic} className="w-16 h-16 rounded object-cover border" alt="f1" />}
-                         {record.trial1.coatingPic && <img src={record.trial1.coatingPic} className="w-16 h-16 rounded object-cover border" alt="c1" />}
-                         {record.trial1.floatingLumpsPic && <img src={record.trial1.floatingLumpsPic} className="w-16 h-16 rounded object-cover border" alt="fl1" />}
-                         {record.trial1.lumpingPic && <img src={record.trial1.lumpingPic} className="w-16 h-16 rounded object-cover border" alt="l1" />}
-                      </div>
-                      <div className="bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap gap-2">
-                         <span className="w-full text-[9px] text-slate-400 mb-1">测试 2 照片:</span>
-                         {record.trial2.foamPic && <img src={record.trial2.foamPic} className="w-16 h-16 rounded object-cover border" alt="f2" />}
-                         {record.trial2.coatingPic && <img src={record.trial2.coatingPic} className="w-16 h-16 rounded object-cover border" alt="c2" />}
-                         {record.trial2.floatingLumpsPic && <img src={record.trial2.floatingLumpsPic} className="w-16 h-16 rounded object-cover border" alt="fl2" />}
-                         {record.trial2.lumpingPic && <img src={record.trial2.lumpingPic} className="w-16 h-16 rounded object-cover border" alt="l2" />}
-                      </div>
-                   </div>
-                </div>
-
-                {/* Individual Record Actions */}
-                <div className="mt-6 pt-4 border-t border-slate-200 flex justify-end gap-3">
-                  <button 
-                    onClick={() => onEdit(record)}
-                    className="px-4 py-2 text-xs font-bold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-2"
-                  >
-                    <i className="fas fa-edit"></i> 编辑记录
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteSingle(record.id, record.sampleName)}
-                    className="px-4 py-2 text-xs font-bold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
-                  >
-                    <i className="fas fa-trash"></i> 删除记录
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
-        ))}
-      </div>
+          
+          {expandedId === record.id && (
+            <div className="p-4 bg-slate-50/50 border-t border-slate-100 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <TrialDetail title="测试试验 1 (Trial 1)" data={record.trial1} />
+                  <TrialDetail title="测试试验 2 (Trial 2)" data={record.trial2} />
+               </div>
+               
+               <div className="bg-indigo-600 p-5 rounded-2xl shadow-lg shadow-indigo-100 text-white">
+                  <p className="text-[10px] opacity-70 font-bold uppercase mb-3">平均统计结果 (Averages)</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/10 p-3 rounded-xl border border-white/10">
+                      <p className="text-[10px] opacity-70 uppercase mb-1">Avg Foam Score</p>
+                      <p className="text-xl font-black">{calculateAvg(record.trial1.foamScore, record.trial2.foamScore)}</p>
+                    </div>
+                    <div className="bg-white/10 p-3 rounded-xl border border-white/10">
+                      <p className="text-[10px] opacity-70 uppercase mb-1">Avg Foam ML</p>
+                      <p className="text-xl font-black">{calculateAvg(record.trial1.foamMl, record.trial2.foamMl)} ml</p>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="flex gap-3 pt-2">
+                 <button onClick={() => onDelete([record.id])} className="flex-1 py-4 text-xs font-bold text-red-600 bg-red-50 rounded-2xl hover:bg-red-100 active:scale-95 transition-all"><i className="fas fa-trash-alt mr-2"></i>删除本条记录</button>
+               </div>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };
